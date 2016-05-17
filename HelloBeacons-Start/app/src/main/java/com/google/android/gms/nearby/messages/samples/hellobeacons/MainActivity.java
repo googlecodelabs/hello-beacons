@@ -35,9 +35,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    /**
-     * The container {@link android.view.ViewGroup} for the minimal UI associated with this sample.
-     */
+    private GoogleApiClient mGoogleApiClient;
+
     private RelativeLayout mContainer;
 
     @Override

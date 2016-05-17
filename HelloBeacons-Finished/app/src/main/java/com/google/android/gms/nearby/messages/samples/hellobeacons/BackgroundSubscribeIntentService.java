@@ -37,6 +37,8 @@ import java.util.List;
  * found or lost, and this service updates the notification, then stops itself.
  */
 public class BackgroundSubscribeIntentService extends IntentService {
+    private static final String TAG = "BackSubIntentService";
+
     private static final int MESSAGES_NOTIFICATION_ID = 1;
     private static final int NUM_MESSAGES_IN_NOTIFICATION = 5;
 

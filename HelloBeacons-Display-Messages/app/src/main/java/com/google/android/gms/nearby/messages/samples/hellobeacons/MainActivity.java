@@ -55,7 +55,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.OnConnectionFailedListener,
+        SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -79,6 +80,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
      */
     private boolean mSubscribed = false;
 
+    /**
+     * Adapter for working with messages from nearby beacons.
+     */
+    private ArrayAdapter<String> mNearbyMessagesArrayAdapter;
+
+    /**
+     * Backing data structure for {@code mNearbyMessagesArrayAdapter}.
+     */
+    private List<String> mNearbyMessagesList = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,6 +97,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        if (savedInstanceState != null) {
+            mSubscribed = savedInstanceState.getBoolean(KEY_SUBSCRIBED, false);
+        }
 
         mContainer = (RelativeLayout) findViewById(R.id.main_activity_container);
 
@@ -98,6 +113,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     protected void onResume() {
         super.onResume();
+
+        getSharedPreferences(getApplicationContext().getPackageName(), Context.MODE_PRIVATE)
+                .registerOnSharedPreferenceChangeListener(this);
+
         if (havePermissions()) {
             buildGoogleApiClient();
         }
@@ -138,6 +157,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     protected void onPause() {
+        getSharedPreferences(getApplicationContext().getPackageName(), Context.MODE_PRIVATE)
+                .unregisterOnSharedPreferenceChangeListener(this);
         super.onPause();
     }
 
@@ -159,6 +180,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public void onConnected(@Nullable Bundle bundle) {
         Log.i(TAG, "GoogleApiClient connected");
         subscribe();
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (TextUtils.equals(key, Utils.KEY_CACHED_MESSAGES)) {
+            mNearbyMessagesList.clear();
+            mNearbyMessagesList.addAll(Utils.getCachedMessages(this));
+            mNearbyMessagesArrayAdapter.notifyDataSetChanged();
+        }
     }
 
     @Override

@@ -19,7 +19,6 @@ package com.google.android.gms.nearby.messages.samples.hellobeacons;
 import android.Manifest;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -41,35 +40,26 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.nearby.Nearby;
-import com.google.android.gms.nearby.messages.Messages;
-import com.google.android.gms.nearby.messages.MessageListener;
 import com.google.android.gms.nearby.messages.NearbyMessagesStatusCodes;
 import com.google.android.gms.nearby.messages.Strategy;
 import com.google.android.gms.nearby.messages.SubscribeOptions;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
-        SharedPreferences.OnSharedPreferenceChangeListener {
+public class MainActivity extends AppCompatActivity
+        implements GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private static final int PERMISSIONS_REQUEST_CODE = 1111;
 
-    /**
-     * The entry point to Google Play Services.
-     */
     private GoogleApiClient mGoogleApiClient;
 
-    /**
-     * The container {@link android.view.ViewGroup} for the minimal UI associated with this sample.
-     */
     private RelativeLayout mContainer;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -91,48 +81,20 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        if (requestCode != PERMISSIONS_REQUEST_CODE) {
-            return;
-        }
-
-        for (int i = 0; i < permissions.length; i++) {
-            String permission = permissions[i];
-            if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
-                if (shouldShowRequestPermissionRationale(permission)) {
-                    Log.i(TAG, "Permission denied without 'NEVER ASK AGAIN': " + permission);
-                    showRequestPermissionsSnackbar();
-                } else {
-                    Log.i(TAG, "Permission denied with 'NEVER ASK AGAIN': " + permission);
-                    showLinkToSettingsSnackbar();
-                }
-            } else {
-                Log.i(TAG, "Permission granted, building GoogleApiClient");
-                buildGoogleApiClient();
-            }
-        }
-    }
-
-    private synchronized void buildGoogleApiClient() {
-        if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .addApi(Nearby.MESSAGES_API)
-                    .addConnectionCallbacks(this)
-                    .enableAutoManage(this, this)
-                    .build();
-        }
-    }
-
-    @Override
     protected void onPause() {
         super.onPause();
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         if (mContainer != null) {
-            Snackbar.make(mContainer, "Exception while connecting to Google Play services: " +
+            Snackbar.make(mContainer,
+                    "Exception while connecting to Google Play services: " +
                             connectionResult.getErrorMessage(),
                     Snackbar.LENGTH_INDEFINITE).show();
         }
@@ -148,31 +110,26 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Log.i(TAG, "GoogleApiClient connected");
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    private synchronized void buildGoogleApiClient() {
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addApi(Nearby.MESSAGES_API)
+                    .addConnectionCallbacks(this)
+                    .enableAutoManage(this, this)
+                    .build();
+        }
     }
 
-    /**
-     * Returns true if this app has the necessary permissions as stated in the Manifest.
-     */
     private boolean havePermissions() {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+        return ContextCompat.checkSelfPermission(this,   Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
     }
 
-    /**
-     * Requests permissions needed for this app.
-     */
     private void requestPermissions() {
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_CODE);
     }
 
-    /**
-     * Displays {@link Snackbar} instructing user to visit Settings to grant permissions required by
-     * this application.
-     */
     private void showLinkToSettingsSnackbar() {
         if (mContainer == null) {
             return;
@@ -195,9 +152,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 }).show();
     }
 
-    /**
-     * Displays {@link Snackbar} with button for the user to re-initiate the permission workflow.
-     */
     private void showRequestPermissionsSnackbar() {
         if (mContainer == null) {
             return;
@@ -213,5 +167,31 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                                 PERMISSIONS_REQUEST_CODE);
                     }
                 }).show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[]permissions, @NonNull int[] grantResults) {
+        if (requestCode != PERMISSIONS_REQUEST_CODE) {
+            return;
+        }
+
+        for (int i = 0; i < permissions.length; i++) {
+            String permission = permissions[i];
+            if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
+                if (shouldShowRequestPermissionRationale(permission)) {
+                    Log.i(TAG, "Permission denied without 'NEVER ASK AGAIN': "
+                            + permission);
+                    showRequestPermissionsSnackbar();
+                } else {
+                    Log.i(TAG, "Permission denied with 'NEVER ASK AGAIN': "
+                            + permission);
+                    showLinkToSettingsSnackbar();
+                }
+            } else {
+                Log.i(TAG, "Permission granted, building GoogleApiClient");
+                buildGoogleApiClient();
+            }
+        }
     }
 }
