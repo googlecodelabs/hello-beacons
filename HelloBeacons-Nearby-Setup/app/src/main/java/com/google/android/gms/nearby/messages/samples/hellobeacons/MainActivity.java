@@ -37,6 +37,8 @@ import android.widget.RelativeLayout;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.nearby.Nearby;
+import com.google.android.gms.nearby.messages.MessagesOptions;
+import com.google.android.gms.nearby.messages.NearbyPermissions;
 
 public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks,
@@ -74,7 +76,8 @@ public class MainActivity extends AppCompatActivity
     private synchronized void buildGoogleApiClient() {
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .addApi(Nearby.MESSAGES_API)
+                    .addApi(Nearby.MESSAGES_API, new MessagesOptions.Builder()
+                        .setPermissions(NearbyPermissions.BLE).build())
                     .addConnectionCallbacks(this)
                     .enableAutoManage(this, this)
                     .build();
