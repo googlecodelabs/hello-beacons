@@ -233,6 +233,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     public void onResult(@NonNull Status status) {
                         if (status.isSuccess()) {
                             Log.i(TAG, "Subscribed successfully.");
+                            mSubscribed = true;
                             startService(getBackgroundSubscribeServiceIntent());
                         } else {
                             Log.e(TAG, "Operation failed. Error: " +
